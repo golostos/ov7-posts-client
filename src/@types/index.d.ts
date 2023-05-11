@@ -14,3 +14,5 @@ export type PostDTO = Post & {
         email: string;
     };
 }
+
+// SessionDTO

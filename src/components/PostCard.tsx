@@ -1,12 +1,15 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import { PostDTO } from '../@types'
 import { Card, CardContent, Typography, CardActions, Button } from '@mui/material'
+import LinkContext from '../services/linkContext'
 
 type Props = {
   post: PostDTO
+  // setPostId: React.Dispatch<React.SetStateAction<number | null>>
 }
 
 export default function PostCard({ post }: Props) {
+  const [link, setLink] = useContext(LinkContext)
   return (
     <Card sx={{ 
       minWidth: 275,
@@ -21,7 +24,12 @@ export default function PostCard({ post }: Props) {
         </Typography>
       </CardContent>
       <CardActions>
-        <Button size="small">Read More</Button>
+        <Button size="small" onClick={() => {
+          // setPostId(post.id)
+          setLink('/posts/' + post.id)
+        }}>
+          Read More
+        </Button>
       </CardActions>
     </Card>
   )
