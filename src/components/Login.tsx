@@ -12,8 +12,11 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import axios from 'axios';
+import axios, { Axios, AxiosError } from 'axios';
 import LinkContext from '../services/linkContext';
+import useLoginForm from '../services/loginFormHook';
+import { z, ZodError } from 'zod';
+import { Snackbar, Alert } from '@mui/material';
 
 function Copyright(props: any) {
   return (
@@ -29,21 +32,70 @@ function Copyright(props: any) {
 }
 
 const theme = createTheme();
-
+enum FormError {
+  NONE,
+  VALID,
+  AUTH,
+}
 export default function SignIn() {
+  const { email,
+    setEmail,
+    password,
+    setPassword,
+    isEmailError,
+    isPasswordError,
+    setIsEmailError,
+    setIsPasswordError } = useLoginForm()
+  const [formErrorMessages, setFormErrorMessages] = React.useState({
+    email: '',
+    password: ''
+  })
   const [link, setLink] = React.useContext(LinkContext)
+  const [submitError, setSubmitError] = React.useState<FormError>(FormError.NONE)
+  function handleClose() {
+    setSubmitError(FormError.NONE)
+  }
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     const credentials = {
-      email: data.get('email'),
-      password: data.get('password'),
+      email,
+      password,
+      // email: data.get('email'),
+      // password: data.get('password'),
     };
     try {
-      const response = await axios.post('/api/login', credentials)
+      const validCredentials = z.object({
+        email: z.string().email(),
+        password: z.string().min(3).max(20)
+      }).parse(credentials)
+      const response = await axios.post('/api/login', validCredentials)
       setLink('/')
     } catch (error) {
       console.error(error)
+      if (error instanceof ZodError) {
+        setSubmitError(FormError.VALID)
+        const emailErrorMessage = []
+        const passwordErrorMessage = []
+        for (const issue of error.issues) {
+          if (issue.path.includes('email')) {
+            emailErrorMessage.push(issue.message)
+          }
+          if (issue.path.includes('password')) {
+            passwordErrorMessage.push(issue.message)
+          }
+        }
+        if (error.issues.length) {
+          setFormErrorMessages({
+            email: emailErrorMessage.join('. '),
+            password: passwordErrorMessage.join('. ')
+          })
+        }
+        if (emailErrorMessage.length) setIsEmailError(true)
+        if (passwordErrorMessage.length) setIsPasswordError(true)
+      } else if (error instanceof AxiosError && error.response?.status === 401) {
+        setSubmitError(FormError.AUTH)
+      }
     }
   };
 
@@ -75,6 +127,14 @@ export default function SignIn() {
               name="email"
               autoComplete="email"
               autoFocus
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              error={isEmailError}
+              helperText={isEmailError
+                ? (formErrorMessages.email
+                  ? formErrorMessages.email
+                  : "Incorrect entry. Use only english letters, 0-9 digits, @, -, _, .")
+                : null}
             />
             <TextField
               margin="normal"
@@ -85,6 +145,14 @@ export default function SignIn() {
               type="password"
               id="password"
               autoComplete="current-password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              error={isPasswordError}
+              helperText={isPasswordError 
+                ? (formErrorMessages.password
+                  ? formErrorMessages.password
+                  : "Incorrect entry. Use only english letters, 0-9 digits, @, -, _, .")
+                : null}
             />
             <FormControlLabel
               control={<Checkbox value="remember" color="primary" />}
@@ -114,6 +182,13 @@ export default function SignIn() {
         </Box>
         <Copyright sx={{ mt: 8, mb: 4 }} />
       </Container>
+      <Snackbar open={submitError !== FormError.NONE} autoHideDuration={6000} onClose={handleClose}>
+        <Alert onClose={handleClose} severity="error" sx={{ width: '100%' }}>
+          {
+            submitError === FormError.VALID ? 'Incorrect email or password' : 'Wrong credentials'
+          }
+        </Alert>
+      </Snackbar>
     </ThemeProvider>
   );
 }
