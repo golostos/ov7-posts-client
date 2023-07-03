@@ -1,5 +1,5 @@
-import { Container, Typography } from '@mui/material'
-import { useContext } from 'react'
+import { CircularProgress, Container, Typography } from '@mui/material'
+import { Suspense, useContext, useEffect, useRef, useState } from 'react'
 import PostsList from './PostsList'
 import { PostDTO } from '../@types'
 import Post from './Post'
@@ -12,18 +12,31 @@ import Login from './Login'
 import useHistory from '../services/historyHook'
 import useData from '../services/getDataHook'
 
-// type Props = {
-// postId: number | null 
-// setPostId: React.Dispatch<React.SetStateAction<number | null>>
-// }
+type Props = {
+  filter: string
+}
 
-export default function MainComponent() {
+function Loading() {
+  return <CircularProgress />
+}
+
+export default function MainComponent({ filter }: Props) {
   const [link, setLink] = useContext(LinkContext)
-  const [posts, setPosts] = useData<PostDTO[]>('/api/posts')
+  const [skip, setSkip] = useState(0)
+  const [limit, setLimit] = useState(10)
+  const [debounceFilter, setDebounceFilter] = useState(filter)
+  const debounceTimeout = useRef<number | null>(null)
+  const [posts, setPosts, refetch, loadingPosts] = useData<PostDTO[]>(`/api/posts?skip=${skip}&limit=${limit}&filter=${debounceFilter}`)
+  useEffect(() => {
+    if (debounceTimeout.current) clearTimeout(debounceTimeout.current)
+    debounceTimeout.current = setTimeout(() => {
+      setDebounceFilter(filter)
+    }, 1000)
+  }, [filter])
   // const post = useMemo(() => posts.find(post => post.id === postId), [postId, posts])
   useHistory()
   function router() {
-    if (link === Routes.MAIN) return <PostsList posts={posts} />
+    if (link === Routes.MAIN) return loadingPosts ? <Loading /> : <PostsList posts={posts} />
     if (link === Routes.USERS) return <Users />
     if (link === Routes.ABOUT) return <About />
     if (link === Routes.LOGIN) return <Login />

@@ -17,6 +17,7 @@ import LinkContext from '../services/linkContext';
 import useLoginForm from '../services/loginFormHook';
 import { z, ZodError } from 'zod';
 import { Snackbar, Alert } from '@mui/material';
+import RevalidateContext from '../services/revalidateContext';
 
 function Copyright(props: any) {
   return (
@@ -50,6 +51,7 @@ export default function SignIn() {
     email: '',
     password: ''
   })
+  const revalidateRef = React.useContext(RevalidateContext)
   const [link, setLink] = React.useContext(LinkContext)
   const [submitError, setSubmitError] = React.useState<FormError>(FormError.NONE)
   function handleClose() {
@@ -70,6 +72,7 @@ export default function SignIn() {
         password: z.string().min(3).max(20)
       }).parse(credentials)
       const response = await axios.post('/api/login', validCredentials)
+      if (revalidateRef.current) revalidateRef.current()
       setLink('/')
     } catch (error) {
       console.error(error)

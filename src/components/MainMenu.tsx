@@ -16,6 +16,8 @@ import LinkContext from '../services/linkContext';
 import { Routes } from '../services/routes';
 import axios, { AxiosError } from 'axios';
 import useData from '../services/getDataHook';
+import { CircularProgress, TextField, colors } from '@mui/material';
+import RevalidateContext from '../services/revalidateContext';
 
 const pages = [
   {
@@ -37,22 +39,24 @@ const pages = [
 const settings = ['Profile', 'Logout'];
 const LogoName = 'MYBLOG'
 
-// type Props = {
-// postId: number | null
-// setPostId: React.Dispatch<React.SetStateAction<number | null>>
-// }
+type Props = {
+  filter: string
+  setFilter: React.Dispatch<React.SetStateAction<string>>
+}
 
-function MainMenu() {
+function MainMenu({ filter, setFilter }: Props) {
   const [link, setLink] = React.useContext(LinkContext)
+  const revalidateRef = React.useContext(RevalidateContext)
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
   const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
-  const [user, setUser, revalidate] = useData('/api/check-session', {
+  const [user, setUser, revalidate, loading] = useData('/api/check-session', {
     auth: false
   }, () => {
     setUser({
       auth: false
     })
   })
+  revalidateRef.current = revalidate
 
   const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElNav(event.currentTarget);
@@ -165,52 +169,63 @@ function MainMenu() {
               </Button>
             ))}
           </Box>
-
+          <TextField
+            label='Filter posts'
+            variant='filled'
+            sx={{
+              backgroundColor: 'white',
+              mr: 2
+            }}
+            value={filter}
+            onChange={e => setFilter(e.target.value)}
+          />
           {
-            user?.auth ?
-              <Box sx={{ flexGrow: 0 }}>
-                <Tooltip title="Open settings">
-                  <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                    <Avatar alt="Remy Sharp" src="/static/images/avatar/2.jpg" />
-                  </IconButton>
-                </Tooltip>
-                <Menu
-                  sx={{ mt: '45px' }}
-                  id="menu-appbar"
-                  anchorEl={anchorElUser}
-                  anchorOrigin={{
-                    vertical: 'top',
-                    horizontal: 'right',
+            loading ?
+              <CircularProgress color='inherit' />
+              : user?.auth ?
+                <Box sx={{ flexGrow: 0 }}>
+                  <Tooltip title="Open settings">
+                    <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+                      <Avatar alt="Remy Sharp" src="/static/images/avatar/2.jpg" />
+                    </IconButton>
+                  </Tooltip>
+                  <Menu
+                    sx={{ mt: '45px' }}
+                    id="menu-appbar"
+                    anchorEl={anchorElUser}
+                    anchorOrigin={{
+                      vertical: 'top',
+                      horizontal: 'right',
+                    }}
+                    keepMounted
+                    transformOrigin={{
+                      vertical: 'top',
+                      horizontal: 'right',
+                    }}
+                    open={Boolean(anchorElUser)}
+                    onClose={handleCloseUserMenu}
+                  >
+                    {settings.map((setting) => (
+                      <MenuItem key={setting} onClick={async (e) => {
+                        if (setting.toLowerCase() === 'logout') {
+                          await axios.post('/api/logout')
+                          revalidate()
+                        }
+                        handleCloseUserMenu()
+                      }}>
+                        <Typography textAlign="center">{setting}</Typography>
+                      </MenuItem>
+                    ))}
+                  </Menu>
+                </Box>
+                : <Button
+                  sx={{ my: 2, color: 'white', display: 'block' }}
+                  onClick={() => {
+                    setLink(Routes.LOGIN)
                   }}
-                  keepMounted
-                  transformOrigin={{
-                    vertical: 'top',
-                    horizontal: 'right',
-                  }}
-                  open={Boolean(anchorElUser)}
-                  onClose={handleCloseUserMenu}
                 >
-                  {settings.map((setting) => (
-                    <MenuItem key={setting} onClick={async (e) => {
-                      if (setting.toLowerCase() === 'logout') {
-                        await axios.post('/api/logout')
-                        revalidate()
-                      }
-                      handleCloseUserMenu()
-                    }}>
-                      <Typography textAlign="center">{setting}</Typography>
-                    </MenuItem>
-                  ))}
-                </Menu>
-              </Box>
-              : <Button
-                sx={{ my: 2, color: 'white', display: 'block' }}
-                onClick={() => {
-                  setLink(Routes.LOGIN)
-                }}
-              >
-                Login
-              </Button>
+                  Login
+                </Button>
           }
         </Toolbar>
       </Container>
