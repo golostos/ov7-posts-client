@@ -14,9 +14,9 @@ import MenuItem from '@mui/material/MenuItem';
 import AdbIcon from '@mui/icons-material/Adb';
 import LinkContext from '../services/linkContext';
 import { Routes } from '../services/routes';
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
 import useData from '../services/getDataHook';
-import { CircularProgress, TextField, colors } from '@mui/material';
+import { CircularProgress, TextField } from '@mui/material';
 import RevalidateContext from '../services/revalidateContext';
 
 const pages = [
@@ -45,7 +45,7 @@ type Props = {
 }
 
 function MainMenu({ filter, setFilter }: Props) {
-  const [link, setLink] = React.useContext(LinkContext)
+  const [_link, setLink] = React.useContext(LinkContext)
   const revalidateRef = React.useContext(RevalidateContext)
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
   const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
@@ -206,7 +206,7 @@ function MainMenu({ filter, setFilter }: Props) {
                     onClose={handleCloseUserMenu}
                   >
                     {settings.map((setting) => (
-                      <MenuItem key={setting} onClick={async (e) => {
+                      <MenuItem key={setting} onClick={async () => {
                         if (setting.toLowerCase() === 'logout') {
                           await axios.post('/api/logout')
                           revalidate()

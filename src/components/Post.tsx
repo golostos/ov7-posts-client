@@ -1,4 +1,4 @@
-import React, { useContext } from 'react'
+import { useContext } from 'react'
 import { PostDTO } from '../@types'
 import { Button, Paper, Typography } from '@mui/material'
 import LinkContext from '../services/linkContext'
@@ -11,6 +11,8 @@ type Props = {
 
 export default function Post({ post }: Props) {
   const [link, setLink] = useContext(LinkContext)
+  console.log(link);
+  
   return (
     <Paper elevation={3}>
       <Typography variant='h4' component='h1' gutterBottom>

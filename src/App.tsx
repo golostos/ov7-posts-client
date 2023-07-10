@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import MainMenu from './components/MainMenu'
 import MainComponent from './components/MainComponent'
 import LinkContext from './services/linkContext'

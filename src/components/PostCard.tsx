@@ -1,4 +1,4 @@
-import React, { useContext } from 'react'
+import { useContext } from 'react'
 import { PostDTO } from '../@types'
 import { Card, CardContent, Typography, CardActions, Button } from '@mui/material'
 import LinkContext from '../services/linkContext'
@@ -10,6 +10,7 @@ type Props = {
 
 export default function PostCard({ post }: Props) {
   const [link, setLink] = useContext(LinkContext)
+  console.log(link)
   return (
     <Card sx={{ 
       minWidth: 275,

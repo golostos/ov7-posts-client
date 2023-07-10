@@ -1,5 +1,5 @@
 import axios, { AxiosError } from 'axios'
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 type voidFunc = () => void
 // Generic
 export default function useData<T>(

@@ -1,5 +1,5 @@
-import { CircularProgress, Container, Typography } from '@mui/material'
-import { Suspense, useContext, useEffect, useRef, useState } from 'react'
+import { CircularProgress, Container } from '@mui/material'
+import { useContext, useEffect, useRef, useState } from 'react'
 import PostsList from './PostsList'
 import { PostDTO } from '../@types'
 import Post from './Post'
@@ -21,12 +21,12 @@ function Loading() {
 }
 
 export default function MainComponent({ filter }: Props) {
-  const [link, setLink] = useContext(LinkContext)
-  const [skip, setSkip] = useState(0)
-  const [limit, setLimit] = useState(10)
+  const [link, _setLink] = useContext(LinkContext)
+  const [skip, _setSkip] = useState(0)
+  const [limit, _setLimit] = useState(10)
   const [debounceFilter, setDebounceFilter] = useState(filter)
   const debounceTimeout = useRef<number | null>(null)
-  const [posts, setPosts, refetch, loadingPosts] = useData<PostDTO[]>(`/api/posts?skip=${skip}&limit=${limit}&filter=${debounceFilter}`)
+  const [posts, _setPosts, _refetch, loadingPosts] = useData<PostDTO[]>(`/api/posts?skip=${skip}&limit=${limit}&filter=${debounceFilter}`)
   useEffect(() => {
     if (debounceTimeout.current) clearTimeout(debounceTimeout.current)
     debounceTimeout.current = setTimeout(() => {

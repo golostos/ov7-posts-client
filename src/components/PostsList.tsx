@@ -1,5 +1,3 @@
-import axios, { AxiosError } from 'axios'
-import React, { useEffect, useState } from 'react'
 import { PostDTO } from '../@types'
 import { Box, Typography } from '@mui/material'
 import PostCard from './PostCard'

@@ -12,7 +12,7 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import axios, { Axios, AxiosError } from 'axios';
+import axios, { AxiosError } from 'axios';
 import LinkContext from '../services/linkContext';
 import useLoginForm from '../services/loginFormHook';
 import { z, ZodError } from 'zod';
@@ -53,13 +53,14 @@ export default function SignIn() {
   })
   const revalidateRef = React.useContext(RevalidateContext)
   const [link, setLink] = React.useContext(LinkContext)
+  console.log(link)
   const [submitError, setSubmitError] = React.useState<FormError>(FormError.NONE)
   function handleClose() {
     setSubmitError(FormError.NONE)
   }
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
+    // const data = new FormData(event.currentTarget);
     const credentials = {
       email,
       password,
@@ -71,7 +72,7 @@ export default function SignIn() {
         email: z.string().email(),
         password: z.string().min(3).max(20)
       }).parse(credentials)
-      const response = await axios.post('/api/login', validCredentials)
+      await axios.post('/api/login', validCredentials)
       if (revalidateRef.current) revalidateRef.current()
       setLink('/')
     } catch (error) {
